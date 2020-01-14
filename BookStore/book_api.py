@@ -1,4 +1,5 @@
-from rest_framework import serializers, generics
+from django.http import Http404
+from rest_framework import serializers, generics, status
 from .models import Book, Stock, Rating
 from rest_framework import viewsets
 from django.contrib.auth.models import User
@@ -8,11 +9,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from . import auth
 from .serializers import BookSerialiser, RateSerialiser, StockSerialiser
-
-
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerialiser
 
 
 class UserInfoView(APIView):
@@ -85,20 +81,85 @@ class StockViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
 
 
-class BookDetail(generics.RetrieveUpdateDestroyAPIView):
+class StockDetail(APIView):
     authentication_classes = [auth.RestAuth]
-    queryset = Book.objects.all()
-    serializer_class = BookSerialiser
+    
+    def get_object(self, pk):
+        try:
+            return Stock.objects.get(pk=pk)
+        except Stock.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = StockSerialiser(snippet)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = StockSerialiser(snippet, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class Book(APIView):
+class BookDetail(APIView):
     authentication_classes = [auth.RestAuth]
 
-    def post(self, request):
-        x = BookViewSet.filter_queryset(request, request.data)
-        return self.process_request(request, request.data)
+    def get_object(self, pk):
+        try:
+            return Book.objects.get(pk=pk)
+        except Book.DoesNotExist:
+            raise Http404
 
-    def get(self, request, format=None):
-        x = BookViewSet.filter_queryset(request, request.data)
-        if not (x is None):
-            return self.request.query_params.f(request, request.query_params)
+    def get(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = BookSerialiser(snippet)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = BookSerialiser(snippet, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class RatingDetail(APIView):
+    authentication_classes = [auth.RestAuth]
+
+    def get_object(self, pk):
+        try:
+            return Rating.objects.get(pk=pk)
+        except Rating.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = RatingDetail(snippet)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = RatingDetail(snippet, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
