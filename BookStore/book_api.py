@@ -59,17 +59,11 @@ class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerialiser
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
-
-
+    
 class RateViewSet(viewsets.ModelViewSet):
     authentication_classes = [auth.RestAuth]
     queryset = Rating.objects.all()
     serializer_class = RateSerialiser
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
 
 
 class StockViewSet(viewsets.ModelViewSet):
@@ -77,10 +71,7 @@ class StockViewSet(viewsets.ModelViewSet):
     queryset = Stock.objects.all()
     serializer_class = StockSerialiser
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
-
-
+    
 class StockDetail(APIView):
     authentication_classes = [auth.RestAuth]
     
@@ -106,7 +97,7 @@ class StockDetail(APIView):
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)
         snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Stock with id `{}` has been deleted.".format(pk)},status=204)
 
 
 class BookDetail(APIView):
@@ -134,7 +125,7 @@ class BookDetail(APIView):
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)
         snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Book with id `{}` has been deleted.".format(pk)},status=204)
 
 
 class RatingDetail(APIView):
@@ -162,4 +153,4 @@ class RatingDetail(APIView):
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)
         snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Rate with id `{}` has been deleted.".format(pk)},status=204)
